@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Models\ApiKey;
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ApiKeyMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!$request->hasHeader('X-Api-Key')) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $apiKey = $request->header('X-Api-Key');
+
+        if (ApiKey::where('id', $apiKey)->doesntExist()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        return $next($request);
+    }
+}
